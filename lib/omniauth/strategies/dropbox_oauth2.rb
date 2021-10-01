@@ -9,6 +9,13 @@ module OmniAuth
         :authorize_url      => 'https://www.dropbox.com/oauth2/authorize',
         :token_url          => 'https://api.dropbox.com/oauth2/token'
       }
+      
+      def authorize_params
+        super.tap do |params|
+          params[:token_access_type] = 'offline' if params[:token_access_type].nil?
+          session['omniauth.state'] = params[:state] if params[:state]
+        end
+      end
 
       uid { raw_info['uid'] }
 
@@ -44,7 +51,7 @@ module OmniAuth
         if @authorization_code_from_signed_request
           ''
         else
-          options[:callback_url] || super
+          options[:callback_url] || full_host + callback_path
         end
       end
     end
